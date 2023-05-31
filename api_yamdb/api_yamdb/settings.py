@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,6 +21,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "reviews",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +67,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = "reviews.CustomUser"
 
 # Password validation
 
@@ -101,3 +105,17 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = ((BASE_DIR / "static/"),)
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
