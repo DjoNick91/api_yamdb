@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
-    "reviews",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -67,7 +67,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = "reviews.CustomUser"
+AUTH_USER_MODEL = "users.CustomUser"
 
 # Password validation
 
