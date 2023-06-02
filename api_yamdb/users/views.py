@@ -1,10 +1,11 @@
 import secrets
 import string
+
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, permissions, filters, status
-from rest_framework.response import Response
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .models import CustomUser
 from .serializers import UserSerializer
@@ -36,6 +37,8 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAdminUser,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("username",)
+    lookup_field = "username"
+    lookup_url_kwarg = "username"
 
     @action(
         detail=False,
