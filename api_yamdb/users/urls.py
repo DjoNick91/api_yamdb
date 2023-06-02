@@ -1,5 +1,4 @@
-from django.contrib.auth import views
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView
 
