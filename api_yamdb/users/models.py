@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+# from .managers import CustomUserManager
 
 ROLE = [
     ("user", "Пользователь"),
@@ -24,6 +25,7 @@ class CustomUser(AbstractUser):
         choices=ROLE,
         default="user",
     )
+    # objects = CustomUserManager()
 
     def __str__(self):
         return self.username
