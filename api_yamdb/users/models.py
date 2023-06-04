@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-# from .managers import CustomUserManager
 
 ROLE = [
     ("user", "Пользователь"),
@@ -25,7 +24,6 @@ class CustomUser(AbstractUser):
         choices=ROLE,
         default="user",
     )
-    # objects = CustomUserManager()
 
     def __str__(self):
         return self.username
@@ -39,5 +37,5 @@ class UserConfirm(models.Model):
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name="conconfirmation_code",
+        related_name="confirmation_code",
     )
