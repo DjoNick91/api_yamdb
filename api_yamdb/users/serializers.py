@@ -9,7 +9,15 @@ from .models import ROLE, CustomUser, UserConfirm
 
 
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.ChoiceField(choices=ROLE, read_only=True)
+    role = serializers.ChoiceField(choices=ROLE, default="user")
+    username = serializers.RegexField(
+        required=True,
+        regex=r"[\w.@+-]+",
+        max_length=150,
+    )
+    email = serializers.EmailField(required=True, max_length=254)
+    first_name = serializers.CharField(max_length=150, required=False)
+    last_name = serializers.CharField(max_length=150, required=False)
 
     class Meta:
         fields = (
@@ -21,6 +29,13 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
         )
         model = CustomUser
+
+    def create(self, validated_data):
+        if validated_data["role"] == "admin":
+            user = CustomUser.objects.create(**validated_data, is_staff=True)
+        else:
+            user = CustomUser.objects.create(**validated_data)
+        return user
 
 
 def generate_code():
@@ -39,7 +54,10 @@ class CreateUserSerializer(serializers.ModelSerializer):
         email = validated_data["email"]
         conf_code = generate_code()
         user = CustomUser.objects.get_or_create(**validated_data)
-        UserConfirm.objects.get_or_create(user=user, confirmation_code=conf_code)
+        UserConfirm.objects.get_or_create(
+            user=user,
+            confirmation_code=conf_code,
+        )
         send_mail(
             subject="Register on site YaMDb",
             message=("Код регистрации: " + conf_code),
