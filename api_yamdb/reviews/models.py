@@ -83,12 +83,14 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
+    """Модель отзывов."""
     title = models.ForeignKey(
         Title,
         related_name='reviews',
         verbose_name='Название',
         on_delete=models.CASCADE,
     )
+    # автор отзыва
     author = models.ForeignKey(
         CustomUser,
         related_name='reviews',
@@ -104,6 +106,7 @@ class Review(models.Model):
         blank=False,
         verbose_name='Текст',
     )
+    # рейтинг произведения и автор отзыва
     score = models.IntegerField(
         default=1,
         validators=[
@@ -114,7 +117,9 @@ class Review(models.Model):
     )
 
     class Meta:
+        # сортировка
         ordering = ('-pub_date',)
+        # проверка: один пользователь - один отзыв
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'],
@@ -124,31 +129,33 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-
+    """Модель комментариев к отзывам."""
+    # id отзыва
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='review_id',
     )
-
+    # текст комментария
     text = models.TextField(
         null=False,
         blank=False,
         verbose_name='comment_text',
     )
-
+    # автор комментария
     author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='author_comment',
     )
-
+    # дата публикации
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True,
     )
 
     class Meta:
+        # сортировка комментариев
         ordering = ["pub_date"]
