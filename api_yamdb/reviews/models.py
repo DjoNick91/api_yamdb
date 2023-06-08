@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
+from users.models import CustomUser
 
 
 class Category(models.Model):
@@ -67,3 +69,82 @@ class GenreTitle(models.Model):
 
     def str(self):
         return f"{self.genre} {self.title}"
+
+
+class Review(models.Model):
+    """Модель для работы с отзывами"""
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='title',
+    )
+    text = models.TextField(
+        null=False,
+        blank=False,
+        verbose_name='text_review',
+    )
+    # автор отзыва
+    author = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='author_review'
+    )
+    # рейтинг произведения, автора отзыва
+    score = models.IntegerField(
+        default=1,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ],
+        verbose_name='score_review'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
+
+    class Meta:
+        # проверка один пользователь - один комментарий
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_title_author'
+            ),
+        ]
+        # сортировка отзывов
+        ordering = ["pub_date"]
+
+
+class Comment(models.Model):
+    """Модель для работы с комментариями к отзывам"""
+    # id отзыва
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='review_id',
+    )
+    # текст комментария
+    text = models.TextField(
+        null=False,
+        blank=False,
+        verbose_name='comment_text',
+    )
+    # автор комментария
+    author = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='author_comment',
+    )
+    # дата публикации
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
+
+    # сортировка комментариев
+    class Meta:
+        ordering = ["pub_date"]

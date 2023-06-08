@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from reviews.models import Category, Genre, Title
+from rest_framework.relations import SlugRelatedField
+from rest_framework.exceptions import ValidationError
+from reviews.models import Category, Genre, Title, Review, Comment
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -37,3 +39,52 @@ class TitlePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = "__all__"
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для отзывов."""
+    author = SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
+
+    class Meta:
+        fields = (
+            "id",
+            "text",
+            "author",
+            "score",
+            "pub_date",
+        )
+        model = Review
+
+    def validate(self, data):
+        title_id = (
+            self.context["request"].parser_context["kwargs"]["title_id"]
+        )
+        user = self.context["request"].user
+        if (
+            self.context["request"].method == "POST"
+            and Review.objects.filter(author=user, title=title_id).exists()
+        ):
+            raise ValidationError(
+                "Вы уже оставляли отзыв на это произведение."
+            )
+        return data
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для комментариев"""
+    author = SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
+    class Meta:
+        fields = (
+            'id',
+            'text',
+            'author',
+            'pub_date',
+        )
+        model = Comment
