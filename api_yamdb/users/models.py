@@ -24,18 +24,10 @@ class CustomUser(AbstractUser):
         choices=ROLE,
         default="user",
     )
-
-    def __str__(self):
-        return self.username
-
-
-class UserConfirm(models.Model):
     confirmation_code = models.CharField(
         verbose_name="Код подтверждения",
         max_length=30,
     )
-    user = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="confirmation_code",
-    )
+
+    def __str__(self):
+        return self.username

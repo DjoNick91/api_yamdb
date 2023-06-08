@@ -23,8 +23,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "api",
     "users",
-    "reviews",
 ]
 
 MIDDLEWARE = [
@@ -121,7 +121,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "TOKEN_OBTAIN_SERIALIZER": "users.serializers.MyTokenSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "api.serializers.MyTokenSerializer",
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
