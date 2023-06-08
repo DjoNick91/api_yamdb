@@ -9,7 +9,12 @@ from django.contrib.auth.tokens import default_token_generator
 
 
 from users.models import CustomUser
-from .serializers import CreateUserSerializer, UserSerializer, MyTokenSerializer
+from .serializers import (
+    CreateUserSerializer,
+    UserSerializer,
+    MyTokenSerializer,
+    AboutSerializer,
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,8 +35,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def me_about(self, request):
         user = get_object_or_404(CustomUser, username=request.user.username)
         if request.method == "PATCH":
-            serializer = UserSerializer(user, data=request.data, partial=True)
-            if serializer.is_valid():
+            serializer = AboutSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(
                     serializer.data,
@@ -57,7 +62,7 @@ class CreateUserView(generics.CreateAPIView):
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
         try:
-            user = CustomUser.objects.get_or_create(email=email, username=username)
+            user, _ = CustomUser.objects.get_or_create(email=email, username=username)
         except IntegrityError:
             return Response(
                 "Такая почта или имя польхователя существует",

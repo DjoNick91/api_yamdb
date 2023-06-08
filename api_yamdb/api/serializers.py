@@ -1,6 +1,4 @@
 import re
-import secrets
-import string
 
 from rest_framework import serializers
 
@@ -9,14 +7,10 @@ from users.models import ROLE, CustomUser
 
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=ROLE, default="user")
-    username = serializers.RegexField(
-        required=True,
-        regex=r"[\w.@+-]+",
-        max_length=150,
-    )
-    email = serializers.EmailField(required=True, max_length=254)
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
+    # username = serializers.CharField(required=True, max_length=150)
+    # email = serializers.EmailField(required=True, max_length=254)
+    # first_name = serializers.CharField(max_length=150, required=False)
+    # last_name = serializers.CharField(max_length=150, required=False)
 
     class Meta:
         fields = (
@@ -36,12 +30,30 @@ class UserSerializer(serializers.ModelSerializer):
             user = CustomUser.objects.create(**validated_data)
         return user
 
+    def validate_username(self, value):
+        if value == "me":
+            raise serializers.ValidationError("Такое имя запрещено")
+        return value
 
-def generate_code():
-    confirmation_code = "".join(
-        secrets.choice(string.digits + string.ascii_letters) for i in range(30)
-    )
-    return confirmation_code
+
+class AboutSerializer(serializers.ModelSerializer):
+    role = serializers.ChoiceField(choices=ROLE, read_only=True)
+
+    class Meta:
+        fields = (
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "bio",
+            "role",
+        )
+        model = CustomUser
+
+    def validate_username(self, value):
+        if value == "me":
+            raise serializers.ValidationError("Такое имя запрещено")
+        return value
 
 
 class CreateUserSerializer(serializers.Serializer):
@@ -52,7 +64,7 @@ class CreateUserSerializer(serializers.Serializer):
         username = value
         email = self.initial_data.get("email")
         if username == "me":
-            raise serializers.ValidationError("Такое имя пользователя запрещено")
+            raise serializers.ValidationError("Такое имя запрещено")
         if not re.match(r"^[\w.@+-]+$", username):
             raise serializers.ValidationError("Не корректный формал логина")
         if CustomUser.objects.filter(

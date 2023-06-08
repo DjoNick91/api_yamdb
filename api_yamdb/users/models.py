@@ -24,10 +24,6 @@ class CustomUser(AbstractUser):
         choices=ROLE,
         default="user",
     )
-    confirmation_code = models.CharField(
-        verbose_name="Код подтверждения",
-        max_length=30,
-    )
 
     def __str__(self):
         return self.username
