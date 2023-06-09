@@ -7,10 +7,6 @@ from users.models import ROLE, CustomUser
 
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=ROLE, default="user")
-    # username = serializers.CharField(required=True, max_length=150)
-    # email = serializers.EmailField(required=True, max_length=254)
-    # first_name = serializers.CharField(max_length=150, required=False)
-    # last_name = serializers.CharField(max_length=150, required=False)
 
     class Meta:
         fields = (
@@ -22,13 +18,6 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
         )
         model = CustomUser
-
-    def create(self, validated_data):
-        if validated_data["role"] == "admin":
-            user = CustomUser.objects.create(**validated_data, is_staff=True)
-        else:
-            user = CustomUser.objects.create(**validated_data)
-        return user
 
     def validate_username(self, value):
         if value == "me":
@@ -73,9 +62,9 @@ class CreateUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "Не верная почта для этого пользователя",
             )
-        if CustomUser.objects.filter(email=email) and not CustomUser.objects.filter(
-            username=username
-        ):
+        if CustomUser.objects.filter(
+            email=email
+        ) and not CustomUser.objects.filter(username=username):
             raise serializers.ValidationError(
                 "Пользователь с такой почтой уже существует"
             )
