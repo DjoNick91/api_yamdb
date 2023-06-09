@@ -4,5 +4,5 @@ from .models import CustomUser
 
 
 @admin.register(CustomUser)
-class СustomUserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(admin.ModelAdmin):
     pass
