@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
 ROLE = [
     ("user", "Пользователь"),
     ("moderator", "Модератор"),
@@ -27,15 +26,3 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
-
-
-class UserConfirm(models.Model):
-    confirmation_code = models.CharField(
-        verbose_name="Код подтверждения",
-        max_length=30,
-    )
-    user = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="confirmation_code",
-    )
