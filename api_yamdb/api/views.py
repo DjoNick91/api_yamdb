@@ -9,13 +9,13 @@ from rest_framework import (filters, generics, pagination, permissions, status,
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
-
 from .permissions import (isAdmin, isAdminOrReadOnly,
                           isUserAdminModeratorOrReadOnly)
 from .serializers import (AboutSerializer, CreateUserSerializer,
-                          MyTokenSerializer, UserSerializer,
+                          TokenSerializer, UserSerializer,
                           CategorySerializer, GenreSerializer,
                           TitlePostSerializer, TitleReadSerializer,
                           ReviewSerializer, CommentSerializer)
@@ -41,7 +41,7 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path="me",
     )
     def me_about(self, request):
-        user = get_object_or_404(CustomUser, username=request.user.username)
+        user = request.user
         if request.method == "PATCH":
             serializer = AboutSerializer(user, data=request.data, partial=True)
             if serializer.is_valid(raise_exception=True):
@@ -90,7 +90,7 @@ class CreateUserView(generics.CreateAPIView):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 def crate_token(request):
-    serializer = MyTokenSerializer(data=request.data)
+    serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     confirmation_code = serializer.validated_data.get("confirmation_code")
     user = get_object_or_404(

@@ -2,12 +2,13 @@ import re
 
 from rest_framework import serializers
 
-from users.models import ROLE, CustomUser
+from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.ChoiceField(choices=ROLE, default="user")
+    role = serializers.ChoiceField(choices=CustomUser.USER_ROLE_CHOICES,
+                                   default="user")
 
     class Meta:
         fields = (
@@ -21,29 +22,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
 
     def validate_username(self, value):
-        if value == "me":
+        if value.casefold() == "me":
             raise serializers.ValidationError("Такое имя запрещено")
         return value
 
 
-class AboutSerializer(serializers.ModelSerializer):
-    role = serializers.ChoiceField(choices=ROLE, read_only=True)
-
-    class Meta:
-        fields = (
-            "username",
-            "email",
-            "first_name",
-            "last_name",
-            "bio",
-            "role",
-        )
-        model = CustomUser
-
-    def validate_username(self, value):
-        if value == "me":
-            raise serializers.ValidationError("Такое имя запрещено")
-        return value
+class AboutSerializer(UserSerializer):
+    role = serializers.ChoiceField(choices=CustomUser.USER_ROLE_CHOICES,
+                                   read_only=True)
 
 
 class CreateUserSerializer(serializers.Serializer):
@@ -53,26 +39,24 @@ class CreateUserSerializer(serializers.Serializer):
     def validate_username(self, value):
         username = value
         email = self.initial_data.get("email")
-        if username == "me":
+        user = CustomUser.objects.filter(username=username)
+        user_email = CustomUser.objects.filter(email=email)
+        if username.casefold() == "me":
             raise serializers.ValidationError("Такое имя запрещено")
         if not re.match(r"^[\w.@+-]+$", username):
             raise serializers.ValidationError("Не корректный формал логина")
-        if CustomUser.objects.filter(
-            username=username
-        ) and not CustomUser.objects.filter(email=email):
+        if user and not user_email:
             raise serializers.ValidationError(
                 "Не верная почта для этого пользователя",
             )
-        if CustomUser.objects.filter(
-            email=email
-        ) and not CustomUser.objects.filter(username=username):
+        if user_email and not user:
             raise serializers.ValidationError(
                 "Пользователь с такой почтой уже существует"
             )
         return value
 
 
-class MyTokenSerializer(serializers.Serializer):
+class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 

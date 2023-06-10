@@ -21,7 +21,7 @@ router.register(
     basename='Comments')
 
 urlpatterns = [
-    path("auth/signup/", CreateUserView.as_view()),
-    path("auth/token/", crate_token, name="get_token"),
-    path("", include(router.urls)),
+    path("v1/auth/signup/", CreateUserView.as_view(), name='signup'),
+    path("v1/auth/token/", crate_token, name="get_token"),
+    path("v1/", include(router.urls)),
 ]
