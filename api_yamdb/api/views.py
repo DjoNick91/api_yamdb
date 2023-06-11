@@ -9,10 +9,9 @@ from rest_framework import (filters, generics, pagination, permissions, status,
                             viewsets, mixins)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken
+
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
-
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
                           IsUserAdminModeratorOrReadOnly)
 from .serializers import (AboutSerializer, CreateUserSerializer,
@@ -45,7 +44,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         if request.method == "PATCH":
             serializer = AboutSerializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True):
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(
                 serializer.data,
