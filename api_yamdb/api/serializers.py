@@ -1,5 +1,6 @@
 import re
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 
 from users.models import CustomUser
@@ -104,6 +105,14 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для отзывов."""
+    score = serializers.IntegerField(
+        default=1,
+        validators=[
+            MinValueValidator(1, "Минимально допустимая оценка: 1"),
+            MaxValueValidator(10, "Максимально допустимая оценка: 10")
+        ],
+    )
+
     author = serializers.SlugRelatedField(
         slug_field="username",
         read_only=True,
