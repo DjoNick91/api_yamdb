@@ -10,7 +10,8 @@ class TitleAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
     def display_genre(self, obj):
-        return ", ".join(genre.name for genre in obj.genre.all())
+        genre_names = obj.genre.values_list("name", flat=True)
+        return ", ".join(genre_names)
 
     display_genre.short_description = "Жанр"
 

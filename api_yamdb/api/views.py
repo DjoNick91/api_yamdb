@@ -6,10 +6,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, pagination, permissions, status,
-                            viewsets, mixins)
+                            viewsets)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-
+from .mixins import BaseListCreateDestroyMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
@@ -65,8 +65,14 @@ class CreateUserView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
-        user = CustomUser.objects.get_or_create(
+        try:
+            user, _ = CustomUser.objects.get_or_create(
                 email=email, username=username)
+        except IntegrityError:
+            return Response(
+                "Такая почта или имя пользователя существует",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
@@ -119,9 +125,7 @@ class TitleViewSet(LimitPutRequest):
 
 
 class BaseListCreateDestroyViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
+    BaseListCreateDestroyMixin,
     viewsets.GenericViewSet,
 ):
     permission_classes = (IsAdminOrReadOnly,)
