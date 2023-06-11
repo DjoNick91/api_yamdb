@@ -69,7 +69,8 @@ class CreateUserView(generics.CreateAPIView):
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
         user, created = CustomUser.objects.get_or_create(
-                email=email, username=username)
+                email=email, username=username
+        )
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
