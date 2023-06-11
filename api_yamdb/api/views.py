@@ -65,14 +65,8 @@ class CreateUserView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
-        try:
-            user, _ = CustomUser.objects.get_or_create(
+        user = CustomUser.objects.get_or_create(
                 email=email, username=username)
-        except IntegrityError:
-            return Response(
-                "Такая почта или имя пользователя существует",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
@@ -92,7 +86,7 @@ def crate_token(request):
     user = get_object_or_404(
         CustomUser, username=serializer.validated_data.get("username")
     )
-    if default_token_generator.check_token(user, confirmation_code):
+    if default_token_generator.check_token(user, confirmation_code)
         token = str(AccessToken.for_user(user))
         return Response(
             {"acces_token": token},
