@@ -1,6 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
@@ -65,14 +64,8 @@ class CreateUserView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
-        try:
-            user, _ = CustomUser.objects.get_or_create(
+        user, created = CustomUser.objects.get_or_create(
                 email=email, username=username)
-        except IntegrityError:
-            return Response(
-                "Такая почта или имя пользователя существует",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
