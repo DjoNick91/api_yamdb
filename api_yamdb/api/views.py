@@ -3,17 +3,17 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, pagination, permissions, status,
                             viewsets, mixins)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
-from .permissions import (isAdmin, isAdminOrReadOnly,
-                          isUserAdminModeratorOrReadOnly)
+from .permissions import (IsAdmin, IsAdminOrReadOnly,
+                          IsUserAdminModeratorOrReadOnly)
 from .serializers import (AboutSerializer, CreateUserSerializer,
                           TokenSerializer, UserSerializer,
                           CategorySerializer, GenreSerializer,
@@ -26,7 +26,7 @@ from .pagination import Pagination
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (isAdmin,)
+    permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("username",)
     lookup_field = "username"
@@ -44,7 +44,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         if request.method == "PATCH":
             serializer = AboutSerializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True):
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(
                 serializer.data,
@@ -108,7 +108,7 @@ class TitleViewSet(LimitPutRequest):
     queryset = Title.objects.annotate(
         rating=Avg("reviews__score")).order_by("id")
     serializer_class = TitleReadSerializer
-    permission_classes = (isAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
@@ -124,7 +124,7 @@ class BaseListCreateDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = (isAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
@@ -151,7 +151,7 @@ class CategoryViewSet(BaseListCreateDestroyViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Для модели отзыва."""
     serializer_class = ReviewSerializer
-    permission_classes = (isUserAdminModeratorOrReadOnly, )
+    permission_classes = (IsUserAdminModeratorOrReadOnly, )
     pagination_class = Pagination
 
     def get_title(self):
@@ -173,7 +173,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Для модели комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = (isUserAdminModeratorOrReadOnly, )
+    permission_classes = (IsUserAdminModeratorOrReadOnly, )
     pagination_class = Pagination
 
     def get_review(self):

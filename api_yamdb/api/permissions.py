@@ -1,8 +1,9 @@
 from rest_framework import permissions
+from users.models import CustomUser
 
 
-class isAdmin(permissions.BasePermission):
-    allowed = ("admin",)
+class IsAdmin(permissions.BasePermission):
+    allowed = CustomUser.ADMINISTRATOR
 
     def has_permission(self, request, view):
         return (
@@ -10,14 +11,15 @@ class isAdmin(permissions.BasePermission):
         ) or request.user.is_superuser
 
 
-class isAdminOrReadOnly(permissions.BasePermission):
+class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return (
-            request.user.is_authenticated and request.user.role == "admin"
+            request.user.is_authenticated
+            and request.user.role == CustomUser.ADMINISTRATOR
         ) or request.method in permissions.SAFE_METHODS
 
 
-class isUserAdminModeratorOrReadOnly(permissions.BasePermission):
+class IsUserAdminModeratorOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated
@@ -27,6 +29,7 @@ class isUserAdminModeratorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return (
             request.method in permissions.SAFE_METHODS
-            or request.user.role != "user"
-            or (request.user.role == "user" and obj.author == request.user)
+            or request.user.role != CustomUser.USER
+            or (request.user.role == CustomUser.USER
+                and obj.author == request.user)
         )
