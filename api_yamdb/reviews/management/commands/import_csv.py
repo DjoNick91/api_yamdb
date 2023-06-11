@@ -27,12 +27,6 @@ class Command(BaseCommand):
             cursor.copy_from(df, "reviews_genre", sep=",", null="")
             conn.commit()
 
-        # Чтение данных из genre_title.csv и их импорт в базу данных
-        df = pd.read_csv("static/data/genre_title.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_genretitle", sep=",", null="")
-            conn.commit()
-
         # Чтение данных из review.csv и их импорт в базу данных
         df = pd.read_csv("static/data/review.csv")
         with conn.cursor() as cursor:
