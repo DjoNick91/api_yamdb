@@ -1,6 +1,5 @@
 import re
 
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -113,20 +112,13 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для отзывов."""
-    score = serializers.IntegerField(
-        default=1,
-        validators=[
-            MinValueValidator(1, "Минимально допустимая оценка: 1"),
-            MaxValueValidator(10, "Максимально допустимая оценка: 10")
-        ],
-    )
-
     author = serializers.SlugRelatedField(
         slug_field="username",
         read_only=True,
     )
 
     class Meta:
+        model = Review
         fields = (
             "id",
             "text",
@@ -134,12 +126,9 @@ class ReviewSerializer(serializers.ModelSerializer):
             "score",
             "pub_date",
         )
-        model = Review
 
     def validate(self, data):
-        title_id = (
-            self.context["request"].parser_context["kwargs"]["title_id"]
-        )
+        title_id = self.context["request"].parser_context["kwargs"]["title_id"]
         user = self.context["request"].user
         if (
             self.context["request"].method == "POST"
@@ -149,6 +138,11 @@ class ReviewSerializer(serializers.ModelSerializer):
                 "Вы уже оставляли отзыв на это произведение."
             )
         return data
+
+    def validate_score(self, value):
+        if value < 1 or value > 10:
+            raise serializers.ValidationError("Оценка должна быть от 1 до 10.")
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):
