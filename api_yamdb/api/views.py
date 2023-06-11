@@ -1,22 +1,20 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, pagination, permissions, status,
-                            viewsets, mixins)
+                            viewsets)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-
+from .mixins import BaseListCreateDestroyMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
-
-from .permissions import (isAdmin, isAdminOrReadOnly,
-                          isUserAdminModeratorOrReadOnly)
+from .permissions import (IsAdmin, IsAdminOrReadOnly,
+                          IsUserAdminModeratorOrReadOnly)
 from .serializers import (AboutSerializer, CreateUserSerializer,
-                          MyTokenSerializer, UserSerializer,
+                          TokenSerializer, UserSerializer,
                           CategorySerializer, GenreSerializer,
                           TitlePostSerializer, TitleReadSerializer,
                           ReviewSerializer, CommentSerializer)
@@ -27,7 +25,7 @@ from .pagination import Pagination
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (isAdmin,)
+    permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("username",)
     lookup_field = "username"
@@ -42,14 +40,18 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path="me",
     )
     def me_about(self, request):
-        user = get_object_or_404(CustomUser, username=request.user.username)
+        user = request.user
         if request.method == "PATCH":
             serializer = AboutSerializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True):
-            serializer.save()
+            if serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_200_OK,
+                )
             return Response(
-                serializer.data,
-                status=status.HTTP_200_OK,
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = self.get_serializer(user)
         return Response(
@@ -66,14 +68,8 @@ class CreateUserView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
-        try:
-            user, _ = CustomUser.objects.get_or_create(
+        user, created = CustomUser.objects.get_or_create(
                 email=email, username=username)
-        except IntegrityError:
-            return Response(
-                "Такая почта или имя пользователя существует",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
@@ -87,7 +83,7 @@ class CreateUserView(generics.CreateAPIView):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 def crate_token(request):
-    serializer = MyTokenSerializer(data=request.data)
+    serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     confirmation_code = serializer.validated_data.get("confirmation_code")
     user = get_object_or_404(
@@ -115,7 +111,7 @@ class TitleViewSet(LimitPutRequest):
     queryset = Title.objects.annotate(
         rating=Avg("reviews__score")).order_by("id")
     serializer_class = TitleReadSerializer
-    permission_classes = (isAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
@@ -126,12 +122,10 @@ class TitleViewSet(LimitPutRequest):
 
 
 class BaseListCreateDestroyViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
+    BaseListCreateDestroyMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = (isAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
@@ -158,7 +152,7 @@ class CategoryViewSet(BaseListCreateDestroyViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Для модели отзыва."""
     serializer_class = ReviewSerializer
-    permission_classes = (isUserAdminModeratorOrReadOnly, )
+    permission_classes = (IsUserAdminModeratorOrReadOnly, )
     pagination_class = Pagination
 
     def get_title(self):
@@ -180,7 +174,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Для модели комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = (isUserAdminModeratorOrReadOnly, )
+    permission_classes = (IsUserAdminModeratorOrReadOnly, )
     pagination_class = Pagination
 
     def get_review(self):
