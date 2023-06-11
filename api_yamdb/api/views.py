@@ -86,7 +86,7 @@ def crate_token(request):
     user = get_object_or_404(
         CustomUser, username=serializer.validated_data.get("username")
     )
-    if default_token_generator.check_token(user, confirmation_code)
+    if default_token_generator.check_token(user, confirmation_code):
         token = str(AccessToken.for_user(user))
         return Response(
             {"acces_token": token},
