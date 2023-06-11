@@ -1,15 +1,14 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, pagination, permissions, status,
-                            viewsets, mixins)
+                            viewsets)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-
+from .mixins import BaseListCreateDestroyMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
@@ -65,7 +64,7 @@ class CreateUserView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
-        user = CustomUser.objects.get_or_create(
+        user, created = CustomUser.objects.get_or_create(
                 email=email, username=username)
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
@@ -119,9 +118,7 @@ class TitleViewSet(LimitPutRequest):
 
 
 class BaseListCreateDestroyViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
+    BaseListCreateDestroyMixin,
     viewsets.GenericViewSet,
 ):
     permission_classes = (IsAdminOrReadOnly,)

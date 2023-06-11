@@ -1,32 +1,46 @@
-import sqlite3
-
-import pandas
 from django.core.management import BaseCommand
+from django.db import connections
+import pandas as pd
 
 
 class Command(BaseCommand):
     help = "Импорт данных из csv файлов в базу данных"
 
     def handle(self, *args, **kwargs):
-        conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
+        conn = connections["default"]
 
-        df = pandas.read_csv("static/data/category.csv")
-        df.to_sql("reviews_category", conn, if_exists="append", index=False)
+        # Чтение данных из category.csv и их импорт в базу данных
+        df = pd.read_csv("static/data/category.csv")
+        with conn.cursor() as cursor:
+            cursor.copy_from(df, "reviews_category", sep=",", null="")
+            conn.commit()
 
-        df = pandas.read_csv("static/data/comments.csv")
-        df.to_sql("reviews_comments", conn, if_exists="append", index=False)
+        # Чтение данных из comments.csv и их импорт в базу данных
+        df = pd.read_csv("static/data/comments.csv")
+        with conn.cursor() as cursor:
+            cursor.copy_from(df, "reviews_comments", sep=",", null="")
+            conn.commit()
 
-        df = pandas.read_csv("static/data/genre.csv")
-        df.to_sql("reviews_genre", conn, if_exists="append", index=False)
+        # Чтение данных из genre.csv и их импорт в базу данных
+        df = pd.read_csv("static/data/genre.csv")
+        with conn.cursor() as cursor:
+            cursor.copy_from(df, "reviews_genre", sep=",", null="")
+            conn.commit()
 
-        df = pandas.read_csv("static/data/genre_title.csv")
-        df.to_sql("reviews_genretitle", conn, if_exists="append", index=False)
+        # Чтение данных из review.csv и их импорт в базу данных
+        df = pd.read_csv("static/data/review.csv")
+        with conn.cursor() as cursor:
+            cursor.copy_from(df, "reviews_review", sep=",", null="")
+            conn.commit()
 
-        df = pandas.read_csv("static/data/review.csv")
-        df.to_sql("reviews_review", conn, if_exists="append", index=False)
+        # Чтение данных из titles.csv и их импорт в базу данных
+        df = pd.read_csv("static/data/titles.csv")
+        with conn.cursor() as cursor:
+            cursor.copy_from(df, "reviews_title", sep=",", null="")
+            conn.commit()
 
-        df = pandas.read_csv("static/data/titles.csv")
-        df.to_sql("reviews_title", conn, if_exists="append", index=False)
-
-        df = pandas.read_csv("static/data/users.csv")
-        df.to_sql("users_user", conn, if_exists="append", index=False)
+        # Чтение данных из users.csv и их импорт в базу данных
+        df = pd.read_csv("static/data/users.csv")
+        with conn.cursor() as cursor:
+            cursor.copy_from(df, "users_user", sep=",", null="")
+            conn.commit()
