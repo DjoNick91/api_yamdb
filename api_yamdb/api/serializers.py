@@ -1,6 +1,7 @@
 import re
 
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 from rest_framework import serializers
 
 from users.models import CustomUser
@@ -101,6 +102,13 @@ class TitlePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = "__all__"
+
+    def validate_year(self, value):
+        current_year = timezone.now().year
+        if value > current_year:
+            raise serializers.ValidationError(
+                "Год не может быть больше текущего года.")
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
