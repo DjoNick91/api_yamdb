@@ -13,8 +13,8 @@ from rest_framework_simplejwt.tokens import AccessToken
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
 
-from .permissions import (isAdmin, isAdminOrReadOnly,
-                          isUserAdminModeratorOrReadOnly)
+from .permissions import (IsAdmin, IsAdminOrReadOnly,
+                          IsUserAdminModeratorOrReadOnly)
 from .serializers import (AboutSerializer, CreateUserSerializer,
                           TokenSerializer, UserSerializer,
                           CategorySerializer, GenreSerializer,
