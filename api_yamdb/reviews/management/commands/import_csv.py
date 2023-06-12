@@ -1,7 +1,8 @@
 from django.core.management import BaseCommand
 from django.db import transaction
 import pandas as pd
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import CustomUser
 
 
 class Command(BaseCommand):
@@ -46,8 +47,8 @@ class Command(BaseCommand):
 
         # Чтение данных из users.csv и их импорт в базу данных
         df = pd.read_csv("static/data/users.csv")
-        User.objects.all().delete()
-        User.objects.bulk_create(
-            [User(username=row["username"], email=row["email"])
+        CustomUser.objects.all().delete()
+        CustomUser.objects.bulk_create(
+            [CustomUser(username=row["username"], email=row["email"])
              for _, row in df.iterrows()]
         )
