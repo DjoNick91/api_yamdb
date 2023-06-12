@@ -13,15 +13,3 @@ class BaseListCreateDestroyMixin(mixins.ListModelMixin,
     search_fields = ("name",)
     lookup_field = "slug"
     pass
-
-
-class LimitPutRequestMixin(mixins.RetrieveModelMixin,
-                           mixins.DestroyModelMixin,
-                           viewsets.GenericViewSet):
-    http_method_names = [
-        "get",
-        "post",
-        "patch",
-        "delete"
-    ]
-    pass

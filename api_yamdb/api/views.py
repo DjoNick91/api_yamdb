@@ -9,7 +9,7 @@ from rest_framework import (filters, generics, pagination, permissions, status,
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
-from .mixins import BaseListCreateDestroyMixin, LimitPutRequestMixin
+from .mixins import BaseListCreateDestroyMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
@@ -99,13 +99,14 @@ def crate_token(request):
     return Response("Не верный токен", status=status.HTTP_400_BAD_REQUEST)
 
 
-class TitleViewSet(LimitPutRequestMixin):
+class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg("reviews__score")).order_by("id")
     serializer_class = TitleReadSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    http_method_names = ("get", "post", "patch", "delete")
 
     def get_serializer_class(self):
         if self.action in ("retrieve", "list"):
