@@ -1,7 +1,10 @@
 import re
 
+from django.db import IntegrityError
 from django.utils import timezone
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.response import Response
+
 
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review, Comment
@@ -40,8 +43,8 @@ class CreateUserSerializer(serializers.Serializer):
     def validate_username(self, value):
         username = value
         email = self.initial_data.get("email")
-        user = CustomUser.objects.filter(username=username)
-        user_email = CustomUser.objects.filter(email=email)
+        user = CustomUser.objects.filter(username=username).exists()
+        user_email = CustomUser.objects.filter(email=email).exists()
         if username.casefold() == "me":
             raise serializers.ValidationError("Такое имя запрещено")
         if not re.match(r"^[\w.@+-]+$", username):
@@ -53,6 +56,13 @@ class CreateUserSerializer(serializers.Serializer):
         if user_email and not user:
             raise serializers.ValidationError(
                 "Пользователь с такой почтой уже существует"
+            )
+        if user and user_email:
+            if CustomUser.objects.filter(username=username,
+                                         email=email).exists():
+                return value
+            raise serializers.ValidationError(
+                "Такая почта или имя пользователя существует"
             )
         return value
 

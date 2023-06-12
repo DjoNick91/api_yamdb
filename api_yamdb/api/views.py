@@ -65,7 +65,7 @@ class CreateUserView(generics.CreateAPIView):
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
         user, created = CustomUser.objects.get_or_create(
-                email=email, username=username)
+            email=email, username=username)
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
@@ -117,17 +117,7 @@ class TitleViewSet(LimitPutRequest):
         return TitlePostSerializer
 
 
-class BaseListCreateDestroyViewSet(
-    BaseListCreateDestroyMixin,
-    viewsets.GenericViewSet,
-):
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
-
-
-class GenreViewSet(BaseListCreateDestroyViewSet):
+class GenreViewSet(BaseListCreateDestroyMixin):
     """
     Получить список всех жанров. Права доступа: Доступно без токена
     """
@@ -136,7 +126,7 @@ class GenreViewSet(BaseListCreateDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(BaseListCreateDestroyViewSet):
+class CategoryViewSet(BaseListCreateDestroyMixin):
     """
     Получить список всех категорий. Права доступа: Доступно без токена
     """
