@@ -1,13 +1,10 @@
 import re
 
-from django.db import IntegrityError
 from django.utils import timezone
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 
-
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CustomUser
-from reviews.models import Category, Genre, Title, Review, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
