@@ -8,6 +8,7 @@ from rest_framework import (filters, generics, pagination, permissions, status,
                             viewsets)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+
 from .mixins import BaseListCreateDestroyMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
@@ -69,8 +70,7 @@ class CreateUserView(generics.CreateAPIView):
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
         user, created = CustomUser.objects.get_or_create(
-            email=email, username=username
-        )
+            email=email, username=username)
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
@@ -99,22 +99,14 @@ def crate_token(request):
     return Response("Не верный токен", status=status.HTTP_400_BAD_REQUEST)
 
 
-class LimitPutRequest(viewsets.ModelViewSet):
-    http_method_names = (
-        "get",
-        "post",
-        "patch",
-        "delete",
-    )
-
-
-class TitleViewSet(LimitPutRequest):
+class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg("reviews__score")).order_by("id")
     serializer_class = TitleReadSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    http_method_names = ("get", "post", "patch", "delete")
 
     def get_serializer_class(self):
         if self.action in ("retrieve", "list"):
@@ -122,17 +114,7 @@ class TitleViewSet(LimitPutRequest):
         return TitlePostSerializer
 
 
-class BaseListCreateDestroyViewSet(
-    BaseListCreateDestroyMixin,
-    viewsets.GenericViewSet,
-):
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
-
-
-class GenreViewSet(BaseListCreateDestroyViewSet):
+class GenreViewSet(BaseListCreateDestroyMixin):
     """
     Получить список всех жанров. Права доступа: Доступно без токена
     """
@@ -141,7 +123,7 @@ class GenreViewSet(BaseListCreateDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(BaseListCreateDestroyViewSet):
+class CategoryViewSet(BaseListCreateDestroyMixin):
     """
     Получить список всех категорий. Права доступа: Доступно без токена
     """

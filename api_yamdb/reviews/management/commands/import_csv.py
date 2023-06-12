@@ -1,46 +1,60 @@
 from django.core.management import BaseCommand
-from django.db import connections
-import pandas as pd
+from django.db import transaction
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import CustomUser
+import csv
 
 
 class Command(BaseCommand):
     help = "Импорт данных из csv файлов в базу данных"
 
+    @transaction.atomic
     def handle(self, *args, **kwargs):
-        conn = connections["default"]
+        # Импорт данных из category.csv
+        with open("static/data/category.csv", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            Category.objects.all().delete()
+            Category.objects.bulk_create(
+                [Category(name=row["name"]) for row in reader]
+            )
 
-        # Чтение данных из category.csv и их импорт в базу данных
-        df = pd.read_csv("static/data/category.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_category", sep=",", null="")
-            conn.commit()
+        # Импорт данных из comments.csv
+        with open("static/data/comments.csv", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            Comment.objects.all().delete()
+            Comment.objects.bulk_create(
+                [Comment(text=row["text"]) for row in reader]
+            )
 
-        # Чтение данных из comments.csv и их импорт в базу данных
-        df = pd.read_csv("static/data/comments.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_comments", sep=",", null="")
-            conn.commit()
+        # Импорт данных из genre.csv
+        with open("static/data/genre.csv", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            Genre.objects.all().delete()
+            Genre.objects.bulk_create(
+                [Genre(name=row["name"]) for row in reader]
+            )
 
-        # Чтение данных из genre.csv и их импорт в базу данных
-        df = pd.read_csv("static/data/genre.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_genre", sep=",", null="")
-            conn.commit()
+        # Импорт данных из review.csv
+        with open("static/data/review.csv", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            Review.objects.all().delete()
+            Review.objects.bulk_create(
+                [Review(text=row["text"]) for row in reader]
+            )
 
-        # Чтение данных из review.csv и их импорт в базу данных
-        df = pd.read_csv("static/data/review.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_review", sep=",", null="")
-            conn.commit()
+        # Импорт данных из titles.csv
+        with open("static/data/titles.csv", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            Title.objects.all().delete()
+            Title.objects.bulk_create(
+                [Title(name=row["name"]) for row in reader]
+            )
 
-        # Чтение данных из titles.csv и их импорт в базу данных
-        df = pd.read_csv("static/data/titles.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_title", sep=",", null="")
-            conn.commit()
-
-        # Чтение данных из users.csv и их импорт в базу данных
-        df = pd.read_csv("static/data/users.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "users_user", sep=",", null="")
-            conn.commit()
+        # Импорт данных из users.csv
+        with open("static/data/users.csv", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            CustomUser.objects.all().delete()
+            CustomUser.objects.bulk_create(
+                [CustomUser(username=row["username"], email=row["email"])
+                 for row in reader]
+            )
