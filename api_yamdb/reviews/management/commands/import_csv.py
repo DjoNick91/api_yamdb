@@ -1,46 +1,53 @@
 from django.core.management import BaseCommand
-from django.db import connections
+from django.db import transaction
 import pandas as pd
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class Command(BaseCommand):
     help = "Импорт данных из csv файлов в базу данных"
 
+    @transaction.atomic
     def handle(self, *args, **kwargs):
-        conn = connections["default"]
-
         # Чтение данных из category.csv и их импорт в базу данных
         df = pd.read_csv("static/data/category.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_category", sep=",", null="")
-            conn.commit()
+        Category.objects.all().delete()  # Очистка таблицы перед импортом
+        Category.objects.bulk_create(
+            [Category(name=row["name"]) for _, row in df.iterrows()]
+        )
 
         # Чтение данных из comments.csv и их импорт в базу данных
         df = pd.read_csv("static/data/comments.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_comments", sep=",", null="")
-            conn.commit()
+        Comment.objects.all().delete()
+        Comment.objects.bulk_create(
+            [Comment(text=row["text"]) for _, row in df.iterrows()]
+        )
 
         # Чтение данных из genre.csv и их импорт в базу данных
         df = pd.read_csv("static/data/genre.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_genre", sep=",", null="")
-            conn.commit()
+        Genre.objects.all().delete()
+        Genre.objects.bulk_create(
+            [Genre(name=row["name"]) for _, row in df.iterrows()]
+        )
 
         # Чтение данных из review.csv и их импорт в базу данных
         df = pd.read_csv("static/data/review.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_review", sep=",", null="")
-            conn.commit()
+        Review.objects.all().delete()
+        Review.objects.bulk_create(
+            [Review(text=row["text"]) for _, row in df.iterrows()]
+        )
 
         # Чтение данных из titles.csv и их импорт в базу данных
         df = pd.read_csv("static/data/titles.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "reviews_title", sep=",", null="")
-            conn.commit()
+        Title.objects.all().delete()
+        Title.objects.bulk_create(
+            [Title(name=row["name"]) for _, row in df.iterrows()]
+        )
 
         # Чтение данных из users.csv и их импорт в базу данных
         df = pd.read_csv("static/data/users.csv")
-        with conn.cursor() as cursor:
-            cursor.copy_from(df, "users_user", sep=",", null="")
-            conn.commit()
+        User.objects.all().delete()
+        User.objects.bulk_create(
+            [User(username=row["username"], email=row["email"])
+             for _, row in df.iterrows()]
+        )

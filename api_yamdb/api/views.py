@@ -9,7 +9,7 @@ from rest_framework import (filters, generics, pagination, permissions, status,
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
-from .mixins import BaseListCreateDestroyMixin
+from .mixins import BaseListCreateDestroyMixin, LimitPutRequestMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
@@ -44,11 +44,15 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         if request.method == "PATCH":
             serializer = AboutSerializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_200_OK,
+                )
             return Response(
-                serializer.data,
-                status=status.HTTP_200_OK,
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = self.get_serializer(user)
         return Response(
@@ -95,16 +99,7 @@ def crate_token(request):
     return Response("Не верный токен", status=status.HTTP_400_BAD_REQUEST)
 
 
-class LimitPutRequest(viewsets.ModelViewSet):
-    http_method_names = (
-        "get",
-        "post",
-        "patch",
-        "delete",
-    )
-
-
-class TitleViewSet(LimitPutRequest):
+class TitleViewSet(LimitPutRequestMixin):
     queryset = Title.objects.annotate(
         rating=Avg("reviews__score")).order_by("id")
     serializer_class = TitleReadSerializer
