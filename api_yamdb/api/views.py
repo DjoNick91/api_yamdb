@@ -8,7 +8,7 @@ from rest_framework import (filters, generics, pagination, permissions, status,
                             viewsets)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from .mixins import BaseListCreateDestroyMixin
+from .mixins import BaseListCreateDestroyMixin, LimitPutRequestMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
@@ -99,13 +99,8 @@ def crate_token(request):
     return Response("Не верный токен", status=status.HTTP_400_BAD_REQUEST)
 
 
-class LimitPutRequest(viewsets.ModelViewSet):
-    http_method_names = (
-        "get",
-        "post",
-        "patch",
-        "delete",
-    )
+class LimitPutRequest(viewsets.ModelViewSet, LimitPutRequestMixin):
+    pass
 
 
 class TitleViewSet(LimitPutRequest):
@@ -122,14 +117,8 @@ class TitleViewSet(LimitPutRequest):
         return TitlePostSerializer
 
 
-class BaseListCreateDestroyViewSet(
-    BaseListCreateDestroyMixin,
-    viewsets.GenericViewSet,
-):
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
+class BaseListCreateDestroyViewSet(BaseListCreateDestroyMixin):
+    pass
 
 
 class GenreViewSet(BaseListCreateDestroyViewSet):
