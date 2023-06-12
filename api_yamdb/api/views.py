@@ -8,6 +8,7 @@ from rest_framework import (filters, generics, pagination, permissions, status,
                             viewsets)
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+
 from .mixins import BaseListCreateDestroyMixin, LimitPutRequestMixin
 from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Review
@@ -69,8 +70,7 @@ class CreateUserView(generics.CreateAPIView):
         email = serializer.validated_data.get("email")
         username = serializer.validated_data.get("username")
         user, created = CustomUser.objects.get_or_create(
-            email=email, username=username
-        )
+            email=email, username=username)
         confirantion_code = default_token_generator.make_token(user)
         send_mail(
             subject="Register on site YaMDb",
@@ -99,11 +99,7 @@ def crate_token(request):
     return Response("Не верный токен", status=status.HTTP_400_BAD_REQUEST)
 
 
-class LimitPutRequest(viewsets.ModelViewSet, LimitPutRequestMixin):
-    pass
-
-
-class TitleViewSet(LimitPutRequest):
+class TitleViewSet(LimitPutRequestMixin):
     queryset = Title.objects.annotate(
         rating=Avg("reviews__score")).order_by("id")
     serializer_class = TitleReadSerializer
@@ -117,11 +113,7 @@ class TitleViewSet(LimitPutRequest):
         return TitlePostSerializer
 
 
-class BaseListCreateDestroyViewSet(BaseListCreateDestroyMixin):
-    pass
-
-
-class GenreViewSet(BaseListCreateDestroyViewSet):
+class GenreViewSet(BaseListCreateDestroyMixin):
     """
     Получить список всех жанров. Права доступа: Доступно без токена
     """
@@ -130,7 +122,7 @@ class GenreViewSet(BaseListCreateDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(BaseListCreateDestroyViewSet):
+class CategoryViewSet(BaseListCreateDestroyMixin):
     """
     Получить список всех категорий. Права доступа: Доступно без токена
     """

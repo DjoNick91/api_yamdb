@@ -24,7 +24,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(
         max_length=50,
         choices=USER_ROLE_CHOICES,
-        default="user",
+        default=USER,
     )
 
     def __str__(self):
