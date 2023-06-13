@@ -12,4 +12,3 @@ class BaseListCreateDestroyMixin(mixins.ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
-    pass

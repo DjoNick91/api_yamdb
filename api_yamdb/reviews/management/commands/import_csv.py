@@ -1,8 +1,11 @@
+import csv
+
 from django.core.management import BaseCommand
 from django.db import transaction
+
+
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CustomUser
-import csv
 
 
 class Command(BaseCommand):
